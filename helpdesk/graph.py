@@ -130,7 +130,8 @@ def build_graph(toolbox: Toolbox, agent_llm, triage_llm, memory: CustomerMemory,
 
     async def intake(state: State) -> dict:
         flags = guard.scan(state.get("subject", "") + "\n" + state["body"])
-        await toolbox.call("update_ticket", ticket_id=state["ticket_id"], status="in_progress")
+        await toolbox.call("update_ticket", ticket_id=state["ticket_id"], status="in_progress", customer_email=state["customer_email"],
+                           subject=state.get("subject", ""), body=state["body"])
         return {"suspicious": flags, "memory": memory.recall(state["customer_email"]),
                 "events": [f"intake: injection flags={flags or 'none'}"]}
 

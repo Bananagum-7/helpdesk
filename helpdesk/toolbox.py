@@ -106,9 +106,11 @@ def local_toolbox(conn, auto_limit: float) -> Toolbox:
         """Issue a refund."""
         return safe(backend.issue_refund, conn, order_id, customer_email, amount, reason, approved_by, auto_limit)
 
-    def update_ticket(ticket_id: str, status: str | None = None, category: str | None = None, resolution: str | None = None) -> str:
+    def update_ticket(ticket_id: str, status: str | None = None, category: str | None = None, resolution: str | None = None,
+                      customer_email: str | None = None, subject: str | None = None, body: str | None = None) -> str:
         """Create or update a support ticket."""
-        return safe(backend.upsert_ticket, conn, ticket_id, status=status, category=category, resolution=resolution)
+        return safe(backend.upsert_ticket, conn, ticket_id, status=status, category=category, resolution=resolution,
+                    customer_email=customer_email, subject=subject, body=body)
 
     fns = [find_customer, list_orders, get_order, check_refund_eligibility, search_help_center, issue_refund, update_ticket]
     assert {f.__name__ for f in fns} == READ_TOOLS | WRITE_TOOLS
