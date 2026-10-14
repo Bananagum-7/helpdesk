@@ -1,0 +1,17 @@
+# docker compose up --build
+#   API: http://localhost:8000/docs     UI: http://localhost:8501
+services:
+  api:
+    build: .
+    env_file: .env
+    ports: ["8000:8000"]
+    volumes: ["helpdesk-data:/app/data"]
+  ui:
+    build: .
+    command: ["streamlit", "run", "app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
+    environment:
+      HELPDESK_API_URL: http://api:8000
+    ports: ["8501:8501"]
+    depends_on: [api]
+volumes:
+  helpdesk-data:
