@@ -1,0 +1,10 @@
+[project]
+name = "helpdesk"
+version = "0.1.0"
+description = "Multi-agent customer support with LangGraph, an MCP server and human approval"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["ignore::DeprecationWarning"]
