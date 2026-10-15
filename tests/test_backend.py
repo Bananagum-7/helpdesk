@@ -50,6 +50,19 @@ def test_get_order_is_scoped_to_customer(conn):
         backend.get_order(conn, 5005, "asha@example.com")
 
 
+def test_issue_refund_enforces_policy_and_approval(conn):
+    with pytest.raises(backend.ToolError, match="need human approval"):
+        backend.issue_refund(conn, 5001, "asha@example.com", 329.0, "broken", "auto", auto_limit=100)
+    with pytest.raises(backend.ToolError, match="exceeds"):
+        backend.issue_refund(conn, 5006, "asha@example.com", 89.0, "x", "human:sam", auto_limit=100)
+    with pytest.raises(backend.ToolError, match="not eligible"):
+        backend.issue_refund(conn, 5002, "asha@example.com", 10, "x", "human:sam", auto_limit=100)
+    r = backend.issue_refund(conn, 5001, "asha@example.com", 329.0, "broken", "human:sam", auto_limit=100)
+    assert r["amount"] == 329.0
+    # Already fully refunded now
+    assert not refund_policy.check(conn, 5001, "asha@example.com", TODAY).eligible
+
+
 def test_kb_search():
     top = kb.search("how long does a refund take to show on my card")[0]
     assert top["id"] == "KB-01"

@@ -59,6 +59,27 @@ def get_order(conn, order_id: int, customer_email: str) -> dict:
             "already_refunded": refunded}
 
 
+def check_refund_eligibility(conn, order_id: int, customer_email: str) -> dict:
+    return refund_policy.check(conn, order_id, customer_email, today()).as_dict()
+
+
+def issue_refund(conn, order_id: int, customer_email: str, amount: float, reason: str, approved_by: str, auto_limit: float) -> dict:
+    """Second line of defence: re-checks everything even though the graph already did."""
+    if amount <= 0:
+        raise ToolError("refund amount must be positive")
+    elig = refund_policy.check(conn, order_id, customer_email, today())
+    if not elig.eligible:
+        raise ToolError(f"order {order_id} is not eligible: {'; '.join(elig.reasons)}")
+    if amount > elig.max_refund + 1e-6:
+        raise ToolError(f"amount {amount:.2f} exceeds the refundable maximum {elig.max_refund:.2f}")
+    if amount > auto_limit and not approved_by.startswith("human:"):
+        raise ToolError(f"refunds over {auto_limit:.2f} need human approval")
+    cur = conn.execute("INSERT INTO refunds (order_id, amount, reason, approved_by) VALUES (?,?,?,?)",
+                       (order_id, round(amount, 2), reason[:500], approved_by))
+    conn.commit()
+    return {"refund_id": cur.lastrowid, "order_id": order_id, "amount": round(amount, 2), "approved_by": approved_by}
+
+
 def search_help_center(query: str) -> list[dict]:
     return [{"id": a["id"], "title": a["title"], "body": a["body"]} for a in kb.search(query, k=3)]
 
