@@ -1,3 +1,4 @@
+rank_bm25>=0.2.2
 faker>=24.0
 pydantic>=2.6
 python-dotenv>=1.0
