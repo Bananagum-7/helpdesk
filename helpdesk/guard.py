@@ -16,7 +16,8 @@ RULES = {
     "role_override": r"\b(you are now|from now on,? you|pretend (to be|you are))\b",
     "addressed_to_ai": r"\b(assistant|ai|agent|bot)\b\s*[,:\-]\s*.{0,20}\b(ignore|approve|issue|refund|send|disregard)\b",
     "skip_review": r"\b(without|skip|bypass)\s+(any\s+)?(human|manual)?\s*(review|approval|confirmation|checks?)\b",
-    "authority_claim": r"\b(i am|this is)\s+(your|the|an?)\s+(developer|admin|administrator|manager|supervisor)\b",
+    "authority_claim": r"\b(i am|i'm|this is)\s+(your|the|an?)\s+(\w+\s+)?(developer|admin|administrator|manager|supervisor|owner)\b",
+    "fake_system": r"(^|\n)\s*(system|admin)\s*:",
     "template_tokens": r"(<\|im_start\|>|\[INST\]|<<SYS>>|###\s*system\s*:)",
 }
 _COMPILED = {k: re.compile(v, re.IGNORECASE | re.DOTALL) for k, v in RULES.items()}
