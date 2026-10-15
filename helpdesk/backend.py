@@ -84,5 +84,16 @@ def search_help_center(query: str) -> list[dict]:
     return [{"id": a["id"], "title": a["title"], "body": a["body"]} for a in kb.search(query, k=3)]
 
 
+def upsert_ticket(conn, ticket_id: str, **fields) -> dict:
+    allowed = {"customer_email", "subject", "body", "status", "category", "resolution"}
+    fields = {k: v for k, v in fields.items() if k in allowed and v is not None}
+    conn.execute("INSERT OR IGNORE INTO tickets (id) VALUES (?)", (ticket_id,))
+    if fields:
+        sets = ", ".join(f"{k} = ?" for k in fields)
+        conn.execute(f"UPDATE tickets SET {sets}, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (*fields.values(), ticket_id))
+    conn.commit()
+    return dict(conn.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,)).fetchone())
+
+
 def to_json(obj) -> str:
     return json.dumps(obj, default=str)

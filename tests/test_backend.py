@@ -67,3 +67,10 @@ def test_kb_search():
     top = kb.search("how long does a refund take to show on my card")[0]
     assert top["id"] == "KB-01"
     assert kb.search("do you ship to the USA")[0]["id"] == "KB-10"
+
+
+def test_tickets(conn):
+    t = backend.upsert_ticket(conn, "T-1", customer_email="asha@example.com", subject="hi", body="b")
+    assert t["status"] == "open"
+    t = backend.upsert_ticket(conn, "T-1", status="resolved", resolution="done")
+    assert (t["status"], t["subject"]) == ("resolved", "hi")
