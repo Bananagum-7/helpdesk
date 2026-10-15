@@ -1,3 +1,4 @@
+faker>=24.0
 pydantic>=2.6
 python-dotenv>=1.0
 pytest>=8.0
