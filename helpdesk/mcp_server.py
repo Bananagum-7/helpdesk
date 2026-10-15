@@ -78,9 +78,11 @@ def issue_refund(order_id: int, customer_email: str, amount: float, reason: str,
 
 
 @mcp.tool()
-def update_ticket(ticket_id: str, status: str | None = None, category: str | None = None, resolution: str | None = None) -> str:
-    """Create or update a support ticket's status, category and resolution note."""
-    return _call(backend.upsert_ticket, conn(), ticket_id, status=status, category=category, resolution=resolution)
+def update_ticket(ticket_id: str, status: str | None = None, category: str | None = None, resolution: str | None = None,
+                  customer_email: str | None = None, subject: str | None = None, body: str | None = None) -> str:
+    """Create or update a support ticket's status, category, resolution note and contents."""
+    return _call(backend.upsert_ticket, conn(), ticket_id, status=status, category=category, resolution=resolution,
+                 customer_email=customer_email, subject=subject, body=body)
 
 
 READ_TOOLS = {"find_customer", "list_orders", "get_order", "check_refund_eligibility", "search_help_center"}
