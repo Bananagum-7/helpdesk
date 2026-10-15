@@ -7,6 +7,11 @@ Why MCP instead of plain function tools: the backend team owns this server
 and decides exactly which operations exist and how they're validated. Any
 MCP client (this LangGraph agent, Claude Desktop, an IDE) can use it without
 knowing anything about the database, and none of them can run arbitrary SQL.
+
+Two kinds of tools:
+- read tools, which the LLM agents may call freely
+- write tools (issue_refund, update_ticket), which the agent graph calls only
+  from deterministic nodes after policy checks and approval, never the LLM
 """
 
 from __future__ import annotations
@@ -66,7 +71,20 @@ def search_help_center(query: str) -> str:
     return _call(backend.search_help_center, query)
 
 
+@mcp.tool()
+def issue_refund(order_id: int, customer_email: str, amount: float, reason: str, approved_by: str) -> str:
+    """Issue a refund. Re-validates eligibility and amount; amounts over the auto limit need approved_by='human:<name>'."""
+    return _call(backend.issue_refund, conn(), order_id, customer_email, amount, reason, approved_by, settings.auto_refund_limit)
+
+
+@mcp.tool()
+def update_ticket(ticket_id: str, status: str | None = None, category: str | None = None, resolution: str | None = None) -> str:
+    """Create or update a support ticket's status, category and resolution note."""
+    return _call(backend.upsert_ticket, conn(), ticket_id, status=status, category=category, resolution=resolution)
+
+
 READ_TOOLS = {"find_customer", "list_orders", "get_order", "check_refund_eligibility", "search_help_center"}
+WRITE_TOOLS = {"issue_refund", "update_ticket"}
 
 if __name__ == "__main__":
     mcp.run()  # stdio transport
