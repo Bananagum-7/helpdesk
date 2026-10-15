@@ -1,6 +1,7 @@
 langchain-core>=1.0
 langchain-openai>=1.0
 mcp>=1.10
+langchain-mcp-adapters>=0.2
 rank_bm25>=0.2.2
 faker>=24.0
 pydantic>=2.6

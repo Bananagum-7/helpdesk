@@ -1,5 +1,7 @@
 """The tools the graph uses, from either source:
 
+- `mcp_toolbox()`  production: tools loaded from the MCP server over stdio,
+                   one long-lived session (not a new process per call).
 - `local_toolbox()` tests/eval: the same backend functions wrapped as tools
                    in-process, so tests run in milliseconds without a subprocess.
 
@@ -10,6 +12,9 @@ and `call(name, **args)` for the write tools the graph invokes itself.
 from __future__ import annotations
 
 import json
+import os
+import sys
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
 from langchain_core.tools import BaseTool, StructuredTool, tool
@@ -52,6 +57,20 @@ class Toolbox:
             return json.loads(text)
         except json.JSONDecodeError:
             return {"raw": text}
+
+
+@asynccontextmanager
+async def mcp_toolbox():
+    from langchain_mcp_adapters.client import MultiServerMCPClient
+    from langchain_mcp_adapters.tools import load_mcp_tools
+
+    client = MultiServerMCPClient({
+        "store": {"command": sys.executable, "args": ["-m", "helpdesk.mcp_server"], "transport": "stdio",
+                  "env": {**os.environ}, "cwd": os.getcwd()},
+    })
+    async with client.session("store") as session:
+        tools = await load_mcp_tools(session)
+        yield Toolbox({t.name: t for t in tools})
 
 
 def local_toolbox(conn, auto_limit: float) -> Toolbox:
